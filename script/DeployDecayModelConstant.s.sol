@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Script.sol";
+import "script/ScriptUtils.s.sol";
 import "src/DecayModelConstantFactory.sol";
 
 /**
@@ -9,6 +9,7 @@ import "src/DecayModelConstantFactory.sol";
   *
   * This script deploys a DecayModelConstant contract.
   * Before executing, the configuration section in the script should be updated.
+  * The private key of an EOA that will be used for transactions in this script must be set in .env.
   *
   * To run this script:
   *
@@ -24,12 +25,11 @@ import "src/DecayModelConstantFactory.sol";
   * # Or, to broadcast a transaction.
   * forge script script/DeployDecayModelConstant.s.sol \
   *   --rpc-url "http://127.0.0.1:8545" \
-  *   --private-key $OWNER_PRIVATE_KEY \
   *   --broadcast \
   *   -vvvv
   * ```
  */
-contract DeployDecayModelConstant is Script {
+contract DeployDecayModelConstant is ScriptUtils {
 
   // -------------------------------
   // -------- Configuration --------
@@ -52,6 +52,8 @@ contract DeployDecayModelConstant is Script {
   // ---------------------------
 
   function run() public {
+    super.loadDeployerKey();
+
     console2.log("Deploying DecayModelConstant...");
     console2.log("    factory", address(factory));
     console2.log("    decayRatePerSecond", decayRatePerSecond);
@@ -59,7 +61,7 @@ contract DeployDecayModelConstant is Script {
     address _availableModel = factory.getModel(decayRatePerSecond);
 
     if (_availableModel == address(0)) {
-      vm.broadcast();
+      vm.broadcast(privateKey);
       _availableModel = address(factory.deployModel(decayRatePerSecond));
       console2.log("New DecayModelConstant deployed");
     } else {

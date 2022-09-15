@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity 0.8.15;
 
-import "forge-std/Script.sol";
+import "script/ScriptUtils.s.sol";
 import "src/CostModelJumpRateFactory.sol";
 import "src/DecayModelConstantFactory.sol";
 import "src/DripModelConstantFactory.sol";
@@ -11,6 +11,7 @@ import "src/DripModelConstantFactory.sol";
   *
   * This script deploys the Model Factory contracts.
   * Before executing, the configuration section in the script should be updated.
+  * The private key of an EOA that will be used for transactions in this script must be set in .env.
   *
   * To run this script:
   *
@@ -26,29 +27,30 @@ import "src/DripModelConstantFactory.sol";
   * # Or, to broadcast a transaction.
   * forge script script/DeployModelFactories.s.sol \
   *   --rpc-url "http://127.0.0.1:8545" \
-  *   --private-key $OWNER_PRIVATE_KEY \
   *   --broadcast \
   *   -vvvv
   * ```
  */
-contract DeployModelFactories is Script {
+contract DeployModelFactories is ScriptUtils {
 
   /// @notice Deploys all the Model Factory contracts
   function run() public {
+    super.loadDeployerKey();
+
     console2.log("Deploying Cozy V2 Model Factories...");
 
     console2.log("  Deploying CostModelJumpRateFactory...");
-    vm.broadcast();
+    vm.broadcast(privateKey);
     address costModelFactory = address(new CostModelJumpRateFactory());
     console2.log("  CostModelJumpRateFactory deployed,", costModelFactory);
 
     console2.log("  Deploying DecayModelConstantFactory...");
-    vm.broadcast();
+    vm.broadcast(privateKey);
     address decayModelFactory = address(new DecayModelConstantFactory());
     console2.log("  DecayModelConstantFactory deployed,", decayModelFactory);
 
     console2.log("  Deploying DripModelConstantFactory...");
-    vm.broadcast();
+    vm.broadcast(privateKey);
     address dripRateFactory = address(new DripModelConstantFactory());
     console2.log("  DripModelConstantFactory deployed,", dripRateFactory);
 
