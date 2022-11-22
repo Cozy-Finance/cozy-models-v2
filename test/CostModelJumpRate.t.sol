@@ -12,15 +12,12 @@ contract CostModelSetup is Test {
 
   MockCostModelJumpRate costModel;
 
-  uint256 public constant CANCELLATION_PENALTY = 0.1e18;
-
   function setUp() public virtual {
     costModel = new MockCostModelJumpRate(
       0.8e18, // kink at 80% utilization
       0.0e18, // 0% fee at no utilization
       0.2e18, // 20% fee at kink utilization
-      0.5e18, // 50% fee at full utilization
-      CANCELLATION_PENALTY // charge a 10% penalty to cancel
+      0.5e18 // 50% fee at full utilization
     );
   }
 }
@@ -30,8 +27,7 @@ contract CostModelDeploy is CostModelSetup {
     uint256 _kink,
     uint256 _costFactorAtZeroUtilization,
     uint256 _costFactorAtKinkUtilization,
-    uint256 _costFactorAtFullUtilization,
-    uint256 _cancellationPenalty
+    uint256 _costFactorAtFullUtilization
   ) public {
     uint256 _oneHundredPercent = 1e18;
     vm.assume(
@@ -39,7 +35,6 @@ contract CostModelDeploy is CostModelSetup {
       || _costFactorAtZeroUtilization > _oneHundredPercent
       || _costFactorAtKinkUtilization > _oneHundredPercent
       || _costFactorAtFullUtilization > _oneHundredPercent
-      || _cancellationPenalty > _oneHundredPercent
     );
 
     vm.expectRevert(CostModelJumpRate.InvalidConfiguration.selector);
@@ -47,8 +42,7 @@ contract CostModelDeploy is CostModelSetup {
       _kink,
       _costFactorAtZeroUtilization,
       _costFactorAtKinkUtilization,
-      _costFactorAtFullUtilization,
-      _cancellationPenalty
+      _costFactorAtFullUtilization
     );
   }
 }
@@ -140,8 +134,7 @@ contract CostFactorTest is CostModelSetup {
       0.55e18, // kink at 55% utilization
       0.15e18, // 15% fee at no utilization
       0.40e18, // 40% fee at kink utilization
-      0.45e18, // 45% fee at full utilization
-      CANCELLATION_PENALTY // charge a 10% penalty to cancel
+      0.45e18 // 45% fee at full utilization
     );
 
     /// There are two different areas under this cost factor curve. They are:
@@ -284,8 +277,7 @@ contract AreaUnderCurveTest is CostModelSetup {
       0.3e18, // kink at 30% utilization
       0.1e18, // 10% fee at no utilization
       0.4e18, // 40% fee at kink utilization
-      0.75e18, // 75% fee at full utilization
-      CANCELLATION_PENALTY // charge a 10% penalty to cancel
+      0.75e18 // 75% fee at full utilization
     );
 
     // Slope below kink = 0.3/0.3 = 1
