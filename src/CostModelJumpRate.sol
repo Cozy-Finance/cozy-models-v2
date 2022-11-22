@@ -113,9 +113,9 @@ contract CostModelJumpRate is ICostModel {
     // But we do all multiplication first so that we avoid precision loss.
     uint256 _areaWithinRefundInterval = _areaUnderCurve(_toUtilization, _fromUtilization);
     uint256 _areaUnderFullUtilizationWindow = _areaUnderCurve(ZERO_UTILIZATION, _fromUtilization);
-    uint256 _numerator = _areaWithinRefundInterval * FixedPointMathLib.WAD;
+    uint256 _numerator = _areaWithinRefundInterval * FixedPointMathLib.WAD**2;
     uint256 _denominator = _areaUnderFullUtilizationWindow * FixedPointMathLib.WAD;
-    return (_areaWithinRefundInterval / _areaUnderFullUtilizationWindow) * FixedPointMathLib.WAD;
+    return (_numerator / _denominator);
   }
 
   /// @dev Returns the area under the curve between the `_intervalLowPoint` and `_intervalHighPoint`.

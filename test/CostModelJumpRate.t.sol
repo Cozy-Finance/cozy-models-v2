@@ -218,23 +218,23 @@ contract RefundFactorTest is CostModelSetup {
     //           Utilization %
 
     // All below kink.
-    assertApproxEqAbs(costModel.refundFactor(0.2e18, 0.0e18), 0.9e18, 1); // all of the fees, less the penalty
-    assertApproxEqAbs(costModel.refundFactor(0.5e18, 0.0e18), 0.9e18, 1); // all of the fees, less the penalty
-    assertApproxEqAbs(costModel.refundFactor(0.2e18, 0.1e18), 0.675e18, 1); // 0.00375 / 0.005 * 0.9
+    assertApproxEqAbs(costModel.refundFactor(0.2e18, 0.0e18), 1e18, 1); // all of the fees, less the penalty
+    assertApproxEqAbs(costModel.refundFactor(0.5e18, 0.0e18), 1e18, 1); // all of the fees, less the penalty
+    assertApproxEqAbs(costModel.refundFactor(0.2e18, 0.1e18), 0.75e18, 1); // 0.00375 / 0.005 * 0.9
 
     // Span accross kink.
-    assertApproxEqRel(costModel.refundFactor(0.9e18, 0.5e18), 0.638372093e18, 1e10); // 0.07625 / 0.1075 * 0.9
-    assertApproxEqAbs(costModel.refundFactor(1.0e18, 0.0e18), 0.9e18, 1); // all of the fees, less the penalty
+    assertApproxEqRel(costModel.refundFactor(0.9e18, 0.5e18), 0.709302325581395348e18, 1e10); // 0.07625 / 0.1075
+    assertApproxEqAbs(costModel.refundFactor(1.0e18, 0.0e18), 1e18, 1); // all of the fees, less the penalty
 
     // Kink in one or more argument.
-    assertApproxEqAbs(costModel.refundFactor(1.0e18, 0.8e18), 0.42e18, 1); // 0.07 / 0.15 * 0.9
-    assertApproxEqRel(costModel.refundFactor(0.9e18, 0.8e18), 0.230232558e18, 1e10); // (0.15 - 0.0425 - 0.08) / (0.15 - 0.0425) * 0.9
-    assertApproxEqAbs(costModel.refundFactor(0.8e18, 0.4e18), 0.675e18, 1); // 0.06 / 0.08 * 0.9
-    assertApproxEqAbs(costModel.refundFactor(0.8e18, 0.2e18), 0.84375e18, 1); // 0.075 / 0.08 * 0.9
-    assertApproxEqAbs(costModel.refundFactor(0.8e18, 0.0e18), 0.9e18, 1); // all of the fees, less the penalty
+    assertApproxEqAbs(costModel.refundFactor(1.0e18, 0.8e18), 0.466666666666666666e18, 1); // 0.07 / 0.15
+    assertApproxEqRel(costModel.refundFactor(0.9e18, 0.8e18), 0.255813953488372093e18, 1e10); // (0.15 - 0.0425 - 0.08) / (0.15 - 0.0425)
+    assertApproxEqAbs(costModel.refundFactor(0.8e18, 0.4e18), 0.75e18, 1); // 0.06 / 0.08
+    assertApproxEqAbs(costModel.refundFactor(0.8e18, 0.2e18), 0.9375e18, 1); // 0.075 / 0.08
+    assertApproxEqAbs(costModel.refundFactor(0.8e18, 0.0e18), 1e18, 1); // all of the fees, less the penalty
 
     // All above kink.
-    assertApproxEqAbs(costModel.refundFactor(1.0e18, 0.9e18), 0.255e18, 1); // 0.0425 / 0.15 * 0.9
+    assertApproxEqAbs(costModel.refundFactor(1.0e18, 0.9e18), 0.283333333333333333e18, 1); // 0.0425 / 0.15
   }
 
   function test_RefundFactorWhenIntervalIsZero(uint256 _utilization) public {
