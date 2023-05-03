@@ -1,5 +1,5 @@
 {
-  "factory": "0xF049CE89083C67A30eD6172E94F9fBd8FE76483E",
+  "factory": "0xeCcc3BFc22998e03ACde1BEF0d5c9556a382eEDB",
   "dripDecayPercentage": 500000000000000000, 
-  "dripDecayPeriodInSeconds": 2592000
+  "dripDecayPeriodInSeconds": 31557600
 }
