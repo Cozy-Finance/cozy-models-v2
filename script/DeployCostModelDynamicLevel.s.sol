@@ -46,6 +46,7 @@ contract DeployCostModelDynamicLevel is ScriptUtils {
     uint256 costFactorAtZeroUtilization;
     uint256 costFactorInOptimalZone;
     uint256 optimalZoneRate;
+    bytes32 salt;
     uint256 uHigh;
     uint256 uLow;
   }
@@ -71,6 +72,8 @@ contract DeployCostModelDynamicLevel is ScriptUtils {
     console2.log("    costFactorAtFullUtilization", metadata_.costFactorAtFullUtilization);
     console2.log("    costFactorInOptimalZone", metadata_.costFactorInOptimalZone);
     console2.log("    optimalZoneRate", metadata_.optimalZoneRate);
+    console2.log("    salt");
+    console2.logBytes32(metadata_.salt);
 
     vm.broadcast();
     address deployedModel_ = address(
@@ -80,7 +83,8 @@ contract DeployCostModelDynamicLevel is ScriptUtils {
         metadata_.costFactorAtZeroUtilization,
         metadata_.costFactorAtFullUtilization,
         metadata_.costFactorInOptimalZone,
-        metadata_.optimalZoneRate
+        metadata_.optimalZoneRate,
+        metadata_.salt
       )
     );
     console2.log("New CostModelDynamicLevel deployed");

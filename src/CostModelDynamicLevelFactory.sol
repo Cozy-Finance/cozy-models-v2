@@ -29,9 +29,10 @@ contract CostModelDynamicLevelFactory is BaseModelFactory {
     uint256 costFactorAtZeroUtilization_,
     uint256 costFactorAtFullUtilization_,
     uint256 costFactorInOptimalZone_,
-    uint256 optimalZoneRate_
+    uint256 optimalZoneRate_,
+    bytes32 baseSalt_
   ) external returns (CostModelDynamicLevel model_) {
-    model_ = new CostModelDynamicLevel({
+    model_ = new CostModelDynamicLevel{salt: baseSalt_}({
           uLow_: uLow_,
           uHigh_: uHigh_,
           costFactorAtZeroUtilization_: costFactorAtZeroUtilization_,
@@ -49,5 +50,24 @@ contract CostModelDynamicLevelFactory is BaseModelFactory {
       costFactorInOptimalZone_,
       optimalZoneRate_
       );
+  }
+
+  /// @notice Call this function to determine the address at which a model
+  /// with the supplied configuration would be deployed.
+  function computeModelAddress(
+    uint256 uLow_,
+    uint256 uHigh_,
+    uint256 costFactorAtZeroUtilization_,
+    uint256 costFactorAtFullUtilization_,
+    uint256 costFactorInOptimalZone_,
+    uint256 optimalZoneRate_,
+    bytes32 baseSalt_
+  ) external view returns (address address_) {
+    bytes memory modelConstructorArgs_ =
+      abi.encode(uLow_, uHigh_, costFactorAtZeroUtilization_, costFactorAtFullUtilization_, costFactorInOptimalZone_, optimalZoneRate_);
+
+    address_ = Create2.computeCreate2Address(
+      type(CostModelDynamicLevel).creationCode, modelConstructorArgs_, address(this), baseSalt_
+    );
   }
 }
