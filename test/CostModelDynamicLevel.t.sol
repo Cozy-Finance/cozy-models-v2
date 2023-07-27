@@ -6,7 +6,6 @@ import {TestBase} from "test/utils/TestBase.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {ICostModel} from "src/interfaces/ICostModel.sol";
 import {MockCostModelDynamicLevel, CostModelDynamicLevel} from "test/utils/MockCostModelDynamicLevel.sol";
-import "forge-std/console2.sol";
 
 contract CostModelSetup is TestBase {
   using FixedPointMathLib for uint256;
