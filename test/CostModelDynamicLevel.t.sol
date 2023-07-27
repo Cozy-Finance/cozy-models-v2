@@ -6,6 +6,7 @@ import {TestBase} from "test/utils/TestBase.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {ICostModel} from "src/interfaces/ICostModel.sol";
 import {MockCostModelDynamicLevel, CostModelDynamicLevel} from "test/utils/MockCostModelDynamicLevel.sol";
+import "forge-std/console2.sol";
 
 contract CostModelSetup is TestBase {
   using FixedPointMathLib for uint256;
@@ -128,6 +129,14 @@ contract CostFactorPointInTimeTest is CostModelSetup {
     toUtilization_ = bound(toUtilization_, fromUtilization_, 1e18);
     assertGe(costModel.costFactor(fromUtilization_, toUtilization_), costModel.costFactorAtZeroUtilization());
   }
+
+  function testFuzz_GetUpdatedStorageParamsEqualsCostFactor(uint256 util) public {
+    (uint256 computedCostFactorInOptimalZone_, uint256 computedLastUpdateTime_) =
+      costModel.getUpdatedStorageParams(block.timestamp, util);
+    // Computed cost factor will equal storage cost factor because timeDelta == 0.
+    assertEq(computedCostFactorInOptimalZone_, costModel.costFactorInOptimalZone());
+    assertEq(computedLastUpdateTime_, block.timestamp);
+  }
 }
 
 contract CostFactorOverTimeTest is CostModelSetup {
@@ -157,6 +166,37 @@ contract CostFactorOverTimeTest is CostModelSetup {
     vm.stopPrank();
     assertEq(costModel.costFactorAtZeroUtilization(), costModel.costFactorInOptimalZone());
     assertEq(costModel.lastUpdateTime(), block.timestamp);
+  }
+
+  function testFuzz_GetUpdatedStorageParamsMovesInRightDirection(uint256 util) public {
+    vm.assume(util <= 1e18 && util >= 0e18);
+    vm.startPrank(setAddress);
+    costModel.update(0e18, util / 2);
+    vm.stopPrank();
+
+    (uint256 costFactorInOptimalZone_,) = costModel.getUpdatedStorageParams(block.timestamp, util);
+    skip(1000);
+    (uint256 newCostFactorInOptimalZone_,) = costModel.getUpdatedStorageParams(block.timestamp, util);
+    if (util < costModel.uOpt()) assertLe(newCostFactorInOptimalZone_, costFactorInOptimalZone_);
+    else assertGe(newCostFactorInOptimalZone_, costFactorInOptimalZone_);
+  }
+
+  function testFuzz_GetUpdatedStorageParamsEqualsPointOnCurveCostFactor(uint256 util, uint128 timeSkip) public {
+    util = bound(util, costModel.uLow(), costModel.uLow());
+
+    skip(uint256(timeSkip));
+    vm.startPrank(setAddress);
+    costModel.update(0e18, util / 2);
+    vm.stopPrank();
+    skip(uint256(timeSkip) + 1000);
+
+    (uint256 computedCostFactorInOptimalZone_, uint256 computedlastUpdateTime_) =
+      costModel.getUpdatedStorageParams(block.timestamp, util);
+    assertEq(computedlastUpdateTime_, block.timestamp);
+    vm.startPrank(setAddress);
+    costModel.update(0e18, util);
+    vm.stopPrank();
+    assertEq(computedCostFactorInOptimalZone_, costModel.costFactorInOptimalZone());
   }
 }
 
