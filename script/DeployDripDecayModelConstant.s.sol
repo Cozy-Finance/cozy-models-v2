@@ -29,14 +29,14 @@ import {calculateDripDecayRate} from "src/lib/ExponentialDecay.sol";
  * anvil --fork-url $OPTIMISM_RPC_URL
  *
  * # In a separate terminal, perform a dry run of the script.
- * forge script script/DeployDecayModelConstant.s.sol \
- *   --sig "run(string)" "deploy-decay-model-constant-<test or production>"
+ * forge script script/DeployDripDecayModelConstant.s.sol \
+ *   --sig "run(string)" "deploy-dripdecay-model-constant-<test or production>" \
  *   --rpc-url "http://127.0.0.1:8545" \
  *   -vvvv
  *
  * # Or, to broadcast a transaction.
- * forge script script/DeployDecayModelConstant.s.sol \
- *   --sig "run(string)" "deploy-decay-model-constant-<test or production>"
+ * forge script script/DeployDripDecayModelConstant.s.sol \
+ *   --sig "run(string)" "deploy-dripdecay-model-constant-<test or production>" \
  *   --rpc-url "http://127.0.0.1:8545" \
  *   --private-key $OWNER_PRIVATE_KEY \
  *   --broadcast \
