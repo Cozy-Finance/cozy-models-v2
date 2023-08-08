@@ -128,6 +128,14 @@ contract CostFactorPointInTimeTest is CostModelSetup {
     toUtilization_ = bound(toUtilization_, fromUtilization_, 1e18);
     assertGe(costModel.costFactor(fromUtilization_, toUtilization_), costModel.costFactorAtZeroUtilization());
   }
+
+  function testFuzz_ComputedStorageParamsCorrect(uint256 utilization_) public {
+    (uint256 computedCostFactorInOptimalZone_, uint256 computedLastUpdateTime_) =
+      costModel.getUpdatedStorageParams(block.timestamp, utilization_);
+    // Computed cost factor will equal storage cost factor because timeDelta == 0.
+    assertEq(computedCostFactorInOptimalZone_, costModel.costFactorInOptimalZone());
+    assertEq(computedLastUpdateTime_, block.timestamp);
+  }
 }
 
 contract CostFactorOverTimeTest is CostModelSetup {
@@ -157,6 +165,37 @@ contract CostFactorOverTimeTest is CostModelSetup {
     vm.stopPrank();
     assertEq(costModel.costFactorAtZeroUtilization(), costModel.costFactorInOptimalZone());
     assertEq(costModel.lastUpdateTime(), block.timestamp);
+  }
+
+  function testFuzz_ComputedStorageParamsMovesInRightDirection(uint256 utilization_) public {
+    utilization_ = bound(utilization_, costModel.uLow(), costModel.uHigh());
+    vm.startPrank(setAddress);
+    costModel.update(0e18, utilization_ / 2);
+    vm.stopPrank();
+
+    (uint256 oldcostFactorInOptimalZone_,) = costModel.getUpdatedStorageParams(block.timestamp, utilization_);
+    skip(1_000_000);
+    (uint256 newCostFactorInOptimalZone_,) = costModel.getUpdatedStorageParams(block.timestamp, utilization_);
+    if (utilization_ < costModel.uOpt()) assertLe(newCostFactorInOptimalZone_, oldcostFactorInOptimalZone_);
+    else assertGe(newCostFactorInOptimalZone_, oldcostFactorInOptimalZone_);
+  }
+
+  function testFuzz_ComputedStorageParamsEqualsStorageParams(uint256 utilization_, uint128 timeSkip) public {
+    utilization_ = bound(utilization_, costModel.uLow(), costModel.uHigh());
+
+    skip(uint256(timeSkip));
+    vm.startPrank(setAddress);
+    costModel.update(0e18, utilization_ / 2);
+    vm.stopPrank();
+
+    skip(uint256(timeSkip) + 1_000_000);
+    (uint256 computedCostFactorInOptimalZone_, uint256 computedlastUpdateTime_) =
+      costModel.getUpdatedStorageParams(block.timestamp, utilization_);
+    assertEq(computedlastUpdateTime_, block.timestamp);
+    vm.startPrank(setAddress);
+    costModel.update(0e18, utilization_);
+    vm.stopPrank();
+    assertEq(computedCostFactorInOptimalZone_, costModel.costFactorInOptimalZone());
   }
 }
 
