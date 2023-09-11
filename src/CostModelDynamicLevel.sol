@@ -32,7 +32,7 @@ contract CostModelDynamicLevel is ICostModel {
   /// @notice Cost factor to apply at 100% utilization, as a wad.
   uint256 public immutable costFactorAtFullUtilization;
 
-  /// @notice Rate at which the `costFactorInOptimalZone` changes, as a wad.
+  /// @notice Per-second rate at which the `costFactorInOptimalZone` changes, as a wad.
   uint256 public immutable optimalZoneRate;
 
   /// @notice Cost factor to apply in the optimal utilization zone, as a wad.
@@ -67,14 +67,14 @@ contract CostModelDynamicLevel is ICostModel {
   /// @param costFactorAtZeroUtilization_ Cost factor to apply at 0% utilization, as a wad.
   /// @param costFactorAtFullUtilization_ Cost factor to apply at 100% utilization, as a wad.
   /// @param costFactorInOptimalZone_ Cost factor to apply in the optimal utilization zone, as a wad.
-  /// @param optimalZoneRate_ Rate at which the `costFactorInOptimalZone` changes, as a wad.
+  /// @param dailyOptimalZoneRate_ Daily rate at which the `costFactorInOptimalZone` changes, as a wad.
   constructor(
     uint256 uLow_,
     uint256 uHigh_,
     uint256 costFactorAtZeroUtilization_,
     uint256 costFactorAtFullUtilization_,
     uint256 costFactorInOptimalZone_,
-    uint256 optimalZoneRate_
+    uint256 dailyOptimalZoneRate_
   ) {
     if (uHigh_ > FixedPointMathLib.WAD) revert InvalidConfiguration();
     if (uLow_ > uHigh_) revert InvalidConfiguration();
@@ -86,7 +86,7 @@ contract CostModelDynamicLevel is ICostModel {
     uOpt = (uLow_ + uHigh_).mulDivUp(1, 2);
     costFactorAtZeroUtilization = costFactorAtZeroUtilization_;
     costFactorAtFullUtilization = costFactorAtFullUtilization_;
-    optimalZoneRate = optimalZoneRate_;
+    optimalZoneRate = dailyOptimalZoneRate_.mulDivUp(1, 1 days);
     costFactorInOptimalZone = costFactorInOptimalZone_;
     lastUpdateTime = block.timestamp;
   }
@@ -230,19 +230,21 @@ contract CostModelDynamicLevel is ICostModel {
   /// @param timeDelta_ Time since last update.
   function _computeNewCostFactorInOptimalZone(uint256 utilization_, uint256 timeDelta_) internal view returns (uint256) {
     uint256 currentCostFactorInOptimalZone_ = costFactorInOptimalZone;
-    if (utilization_ >= uOpt) {
-      // Cost factor increases with `timeDelta` and `utilization - uOpt`, but with a ceiling set at
-      // `costFactorAtFullUtilization`.
-      return _min(
-        currentCostFactorInOptimalZone_ + optimalZoneRate.mulWadUp((utilization_ - uOpt) * timeDelta_),
-        costFactorAtFullUtilization
+    if (timeDelta_ == 0 || utilization_ == uOpt) return currentCostFactorInOptimalZone_;
+    if (utilization_ > uOpt) {
+      uint256 costFactorInOptimalZoneDelta_ = currentCostFactorInOptimalZone_.mulDivUp(
+        optimalZoneRate * timeDelta_ * (utilization_ - uOpt), FixedPointMathLib.WAD ** 2
       );
+      return _min(costFactorAtFullUtilization, currentCostFactorInOptimalZone_ + costFactorInOptimalZoneDelta_);
     } else {
-      // Cost factor decreases with `timeDelta` and `utilization - uOpt`, but with a floor set at
-      // `costFactorAtZeroUtilization`.
-      uint256 delta_ = optimalZoneRate.mulWadUp((uOpt - utilization_) * timeDelta_);
-      if (delta_ > currentCostFactorInOptimalZone_ - costFactorAtZeroUtilization) return costFactorAtZeroUtilization;
-      else return currentCostFactorInOptimalZone_ - delta_;
+      uint256 costFactorInOptimalZoneDelta_ = currentCostFactorInOptimalZone_.mulDivUp(
+        optimalZoneRate * timeDelta_ * (uOpt - utilization_), FixedPointMathLib.WAD ** 2
+      );
+      if (costFactorInOptimalZoneDelta_ > currentCostFactorInOptimalZone_ - costFactorAtZeroUtilization) {
+        return costFactorAtZeroUtilization;
+      } else {
+        return currentCostFactorInOptimalZone_ - costFactorInOptimalZoneDelta_;
+      }
     }
   }
 
@@ -262,7 +264,7 @@ contract CostModelDynamicLevel is ICostModel {
   }
 
   /// @dev Called by the Cozy protocol to update the model's storage variables.
-  function update(uint256 utilization_, uint256 newUtilization_) external onlySet {
+  function update(uint256, /*utilization_*/ uint256 newUtilization_) external onlySet {
     (costFactorInOptimalZone, lastUpdateTime) = getUpdatedStorageParams(block.timestamp, newUtilization_);
     emit UpdatedDynamicLevelModelParameters(costFactorInOptimalZone, lastUpdateTime);
   }
