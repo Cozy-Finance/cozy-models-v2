@@ -10,7 +10,7 @@ contract MockCostModelDynamicLevel is CostModelDynamicLevel {
     uint256 costFactorAtZeroUtilization_,
     uint256 costFactorAtFullUtilization_,
     uint256 costFactorInOptimalZone_,
-    uint256 optimalZoneRate_
+    uint256 dailyOptimalZoneRate_
   )
     CostModelDynamicLevel(
       uLow_,
@@ -18,7 +18,7 @@ contract MockCostModelDynamicLevel is CostModelDynamicLevel {
       costFactorAtZeroUtilization_,
       costFactorAtFullUtilization_,
       costFactorInOptimalZone_,
-      optimalZoneRate_
+      dailyOptimalZoneRate_
     )
   {}
 
@@ -28,5 +28,13 @@ contract MockCostModelDynamicLevel is CostModelDynamicLevel {
     returns (uint256)
   {
     return _areaUnderCurve(intervalLowPoint_, intervalHighPoint_, costFactorInOptimalZone_);
+  }
+
+  function computeNewCostFactorInOptimalZone(uint256 utilization_, uint256 timeDelta_)
+    public
+    view
+    returns (uint256)
+  {
+    return _computeNewCostFactorInOptimalZone(utilization_, timeDelta_);
   }
 }

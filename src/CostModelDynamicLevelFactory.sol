@@ -17,7 +17,7 @@ contract CostModelDynamicLevelFactory is BaseModelFactory {
     uint256 costFactorAtZeroUtilization,
     uint256 costFactorAtFullUtilization,
     uint256 costFactorInOptimalZone,
-    uint256 optimalZoneRate
+    uint256 dailyOptimalZoneRate
   );
 
   /// @notice Deploys a CostModelDynamicLevel contract and emits a
@@ -29,7 +29,7 @@ contract CostModelDynamicLevelFactory is BaseModelFactory {
     uint256 costFactorAtZeroUtilization_,
     uint256 costFactorAtFullUtilization_,
     uint256 costFactorInOptimalZone_,
-    uint256 optimalZoneRate_,
+    uint256 dailyOptimalZoneRate_,
     bytes32 baseSalt_
   ) external returns (CostModelDynamicLevel model_) {
     model_ = new CostModelDynamicLevel{salt: baseSalt_}({
@@ -38,7 +38,7 @@ contract CostModelDynamicLevelFactory is BaseModelFactory {
           costFactorAtZeroUtilization_: costFactorAtZeroUtilization_,
           costFactorAtFullUtilization_: costFactorAtFullUtilization_,
           costFactorInOptimalZone_: costFactorInOptimalZone_,
-          optimalZoneRate_: optimalZoneRate_
+          dailyOptimalZoneRate_: dailyOptimalZoneRate_
         }
     );
     emit DeployedCostModelDynamicLevel(
@@ -48,7 +48,7 @@ contract CostModelDynamicLevelFactory is BaseModelFactory {
       costFactorAtZeroUtilization_,
       costFactorAtFullUtilization_,
       costFactorInOptimalZone_,
-      optimalZoneRate_
+      dailyOptimalZoneRate_
       );
   }
 
@@ -60,11 +60,11 @@ contract CostModelDynamicLevelFactory is BaseModelFactory {
     uint256 costFactorAtZeroUtilization_,
     uint256 costFactorAtFullUtilization_,
     uint256 costFactorInOptimalZone_,
-    uint256 optimalZoneRate_,
+    uint256 dailyOptimalZoneRate_,
     bytes32 baseSalt_
   ) external view returns (address address_) {
     bytes memory modelConstructorArgs_ =
-      abi.encode(uLow_, uHigh_, costFactorAtZeroUtilization_, costFactorAtFullUtilization_, costFactorInOptimalZone_, optimalZoneRate_);
+      abi.encode(uLow_, uHigh_, costFactorAtZeroUtilization_, costFactorAtFullUtilization_, costFactorInOptimalZone_, dailyOptimalZoneRate_);
 
     address_ = Create2.computeCreate2Address(
       type(CostModelDynamicLevel).creationCode, modelConstructorArgs_, address(this), baseSalt_
